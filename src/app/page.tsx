@@ -40,6 +40,30 @@ export default async function Home() {
           color="bg-red-50 hover:bg-red-100"
         />
 
+        <div className="bg-blue-50 p-6 rounded-lg border border-blue-100 shadow-sm transition-shadow hover:shadow-md">
+          <h2 className="text-xl font-bold text-blue-800 mb-2">Desempeño por Curso</h2>
+          <p className="text-gray-600 text-sm mb-4">
+            Promedios y tasa de reprobación por materia y periodo.
+          </p>
+          <Link
+            href="/reports/courses"
+            className="text-blue-600 font-medium hover:underline text-sm flex items-center gap-1"
+          >
+            Ver reporte &rarr;
+          </Link>
+        </div>
+        <div className="bg-purple-50 p-6 rounded-lg border border-purple-100 shadow-sm transition-shadow hover:shadow-md">
+          <h2 className="text-xl font-bold text-purple-800 mb-2">Asistencia</h2>
+          <p className="text-gray-600 text-sm mb-4">
+            Reporte de asistencia promedio por grupos y materias.
+          </p>
+          <Link
+            href="/reports/attendance"
+            className="text-purple-600 font-medium hover:underline text-sm flex items-center gap-1"
+          >
+            Ver reporte &rarr;
+          </Link>
+        </div>
         <ReportCard 
           title="Carga Docente" 
           desc="Grupos y alumnos por profesor."
