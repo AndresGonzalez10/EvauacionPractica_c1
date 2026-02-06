@@ -38,12 +38,12 @@ CREATE table grades (
     enrollment_id INT REFERENCES enrollments(id),
     partial1 DECIMAL(3,2) CHECK (partial1 >= 0 AND partial1 <= 10),
     partial2 DECIMAL(3,2) CHECK (partial2 >= 0  AND partial2 <= 10),
-    final DECIMAL(3,2) CHECK (final >= 0 AND final <= 10),
+    final DECIMAL(3,2) CHECK (final >= 0 AND final <= 10)
 );
 
 CREATE table attendance (
     id SERIAL PRIMARY KEY,
     enrollment_id INT NOT NULl REFERENCES enrollments(id),
     date DATE NOT NULL,
-    present BOOLEAN NOT NULL,
+    present BOOLEAN NOT NULL
 );
