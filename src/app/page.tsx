@@ -1,65 +1,72 @@
-import Image from "next/image";
+import Link from 'next/link';
+import { query } from '../lib/db';
 
-export default function Home() {
+export default async function Home() {
+
+  const riskResult = await query('SELECT COUNT(*) as total FROM vw_students_at_risk');
+  const riskCount = riskResult.rows[0].total;
+
+  const perfResult = await query('SELECT AVG(promedio_general) as promedio FROM vw_course_performance');
+  const avgSchool = Number(perfResult.rows[0].promedio).toFixed(2);
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <main className="min-h-screen p-8 bg-gray-50">
+      <h1 className="text-3xl font-bold text-blue-900 mb-8">
+        Panel de Coordinación Académica
+      </h1>
+
+      {/* Sección de KPIs*/}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+        <div className="bg-white p-6 rounded-lg shadow-md border-l-4 border-red-500">
+          <h3 className="text-gray-500 text-sm uppercase">Alumnos en Riesgo</h3>
+          <p className="text-4xl font-bold text-gray-800">{riskCount}</p>
+          <p className="text-xs text-gray-400 mt-2">Promedio &lt; 7.0 o Asistencia &lt; 80%</p>
+        </div>
+        <div className="bg-white p-6 rounded-lg shadow-md border-l-4 border-blue-500">
+          <h3 className="text-gray-500 text-sm uppercase">Promedio General Escuela</h3>
+          <p className="text-4xl font-bold text-gray-800">{avgSchool}</p>
+          <p className="text-xs text-gray-400 mt-2">Basado en rendimiento de cursos</p>
+        </div>
+      </div>
+
+      {/* Menú de Reportes*/}
+      <h2 className="text-xl font-semibold mb-4 text-gray-700">Reportes Disponibles</h2>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        
+        <ReportCard 
+          title="Alumnos en Riesgo" 
+          desc="Listado detallado para intervención inmediata."
+          link="/reports/risk"
+          color="bg-red-50 hover:bg-red-100"
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+
+        <ReportCard 
+          title="Carga Docente" 
+          desc="Grupos y alumnos por profesor."
+          link="/reports/teachers"
+          color="bg-green-50 hover:bg-green-100"
+        />
+
+        <ReportCard 
+          title="Ranking Estudiantil" 
+          desc="Mejores promedios por programa."
+          link="/reports/ranking"
+          color="bg-yellow-50 hover:bg-yellow-100"
+        />
+        
+        {/* Agrega aquí las otras tarjetas para completar las 5 vistas */}
+      </div>
+    </main>
+  );
+}
+
+// Componente pequeño para las tarjetas (para no repetir código)
+function ReportCard({ title, desc, link, color }: { title: string, desc: string, link: string, color: string }) {
+  return (
+    <Link href={link} className={`block p-6 rounded-lg border border-gray-200 transition-all ${color}`}>
+      <h3 className="text-lg font-bold text-gray-800 mb-2">{title}</h3>
+      <p className="text-gray-600 text-sm">{desc}</p>
+      <span className="inline-block mt-4 text-blue-600 text-sm font-medium">Ver reporte &rarr;</span>
+    </Link>
   );
 }
