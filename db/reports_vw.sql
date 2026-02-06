@@ -64,7 +64,7 @@ SELECT
     s.program,
     g.term AS periodo,
     AVG(gr.final) AS promedio,
-    RANK() OVER (PARTITION BY s.program, g.term ORDER BY AVG(gr.final) DESC) AS ranking_posicion
+    RANK() OVER (PARTITION BY g.term ORDER BY AVG(gr.final) DESC) AS ranking_posicion
 FROM students s
 JOIN enrollments e ON s.id = e.student_id
 JOIN groups g ON e.group_id = g.id
