@@ -20,7 +20,7 @@ export default async function AttendancePage({
   const itemsPerPage = 5;
   const offset = (currentPage - 1) * itemsPerPage;
 
-  // SQL Dinámico
+
   let sql = `
     SELECT * FROM vw_attendance_by_group
     WHERE 1=1
@@ -32,14 +32,14 @@ export default async function AttendancePage({
     queryParams.push(selectedTerm);
   }
 
-  // Ordenamos: Los que tienen MENOR asistencia aparecen primero (son los preocupantes)
+
   sql += ` ORDER BY asistencia_promedio ASC LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}`;
   queryParams.push(itemsPerPage, offset);
 
   const result = await query(sql, queryParams);
   const groups = result.rows;
 
-  // Paginación
+
   let countSql = `SELECT COUNT(*) as total FROM vw_attendance_by_group WHERE 1=1`;
   const countParams: string[] = [];
   if (selectedTerm) {
@@ -50,7 +50,7 @@ export default async function AttendancePage({
   const totalItems = Number(countResult.rows[0].total);
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-  // Periodos disponibles
+
   const termsResult = await query(`SELECT DISTINCT periodo FROM vw_attendance_by_group ORDER BY periodo DESC`);
   const availableTerms = termsResult.rows;
 
@@ -66,7 +66,7 @@ export default async function AttendancePage({
         </Link>
       </div>
 
-      {/* Filtros */}
+
       <div className="mb-6 bg-white p-4 rounded shadow-sm flex gap-4 items-center">
         <span className="font-semibold text-gray-700">Periodo:</span>
         <div className="flex gap-2">
@@ -91,7 +91,6 @@ export default async function AttendancePage({
         </div>
       </div>
 
-      {/* Tabla */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <table className="w-full text-left border-collapse">
           <thead className="bg-purple-50 border-b border-purple-100">
@@ -148,7 +147,6 @@ export default async function AttendancePage({
         </table>
       </div>
 
-      {/* Paginación */}
       <div className="mt-6 flex justify-between items-center text-sm text-gray-500">
         <p>Página {currentPage} de {totalPages || 1}</p>
         <div className="flex gap-2">

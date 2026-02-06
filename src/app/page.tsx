@@ -15,7 +15,6 @@ export default async function Home() {
         Panel de Coordinación Académica
       </h1>
 
-      {/* Sección de KPIs*/}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
         <div className="bg-white p-6 rounded-lg shadow-md border-l-4 border-red-500">
           <h3 className="text-gray-500 text-sm uppercase">Alumnos en Riesgo</h3>
@@ -29,7 +28,6 @@ export default async function Home() {
         </div>
       </div>
 
-      {/* Menú de Reportes*/}
       <h2 className="text-xl font-semibold mb-4 text-gray-700">Reportes Disponibles</h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         
@@ -78,13 +76,11 @@ export default async function Home() {
           color="bg-yellow-50 hover:bg-yellow-100"
         />
         
-        {/* Agrega aquí las otras tarjetas para completar las 5 vistas */}
       </div>
     </main>
   );
 }
 
-// Componente pequeño para las tarjetas (para no repetir código)
 function ReportCard({ title, desc, link, color }: { title: string, desc: string, link: string, color: string }) {
   return (
     <Link href={link} className={`block p-6 rounded-lg border border-gray-200 transition-all ${color}`}>

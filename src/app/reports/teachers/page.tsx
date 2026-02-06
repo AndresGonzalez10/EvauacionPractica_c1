@@ -2,7 +2,6 @@ import { query } from '@/lib/db';
 import { z } from 'zod';
 import Link from 'next/link';
 
-// 1. Esquema de validación (Filtro por Periodo)
 const filterSchema = z.object({
   term: z.string().optional(),
   page: z.coerce.number().min(1).default(1),
@@ -21,7 +20,7 @@ export default async function TeacherLoadPage({
   const itemsPerPage = 5;
   const offset = (currentPage - 1) * itemsPerPage;
 
-  // 2. Construir SQL Dinámico
+
   let sql = `
     SELECT * FROM vw_teacher_load
     WHERE 1=1
@@ -33,15 +32,14 @@ export default async function TeacherLoadPage({
     queryParams.push(selectedTerm);
   }
 
-  // Ordenamos por quien tiene más alumnos (carga más pesada)
+
   sql += ` ORDER BY total_alumnos DESC LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}`;
   queryParams.push(itemsPerPage, offset);
 
-  // 3. Ejecutar consultas
+
   const result = await query(sql, queryParams);
   const teachers = result.rows;
 
-  // Total para paginación
   let countSql = `SELECT COUNT(*) as total FROM vw_teacher_load WHERE 1=1`;
   const countParams: string[] = [];
   if (selectedTerm) {
@@ -52,7 +50,7 @@ export default async function TeacherLoadPage({
   const totalItems = Number(countResult.rows[0].total);
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-  // Periodos para el filtro
+
   const termsResult = await query(`SELECT DISTINCT periodo FROM vw_teacher_load ORDER BY periodo DESC`);
   const availableTerms = termsResult.rows;
 
@@ -68,7 +66,6 @@ export default async function TeacherLoadPage({
         </Link>
       </div>
 
-      {/* Filtros */}
       <div className="mb-6 bg-white p-4 rounded shadow-sm flex gap-4 items-center">
         <span className="font-semibold text-gray-700">Periodo:</span>
         <div className="flex gap-2">
@@ -93,7 +90,6 @@ export default async function TeacherLoadPage({
         </div>
       </div>
 
-      {/* Tabla */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <table className="w-full text-left border-collapse">
           <thead className="bg-green-50 border-b border-green-100">
@@ -135,7 +131,6 @@ export default async function TeacherLoadPage({
         </table>
       </div>
 
-      {/* Paginación */}
       <div className="mt-6 flex justify-between items-center text-sm text-gray-500">
         <p>Página {currentPage} de {totalPages || 1}</p>
         <div className="flex gap-2">

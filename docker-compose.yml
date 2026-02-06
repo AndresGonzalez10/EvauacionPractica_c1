@@ -18,3 +18,18 @@ services:
       - ./db/reports_vw.sql:/docker-entrypoint-initdb.d/03-reports.sql
       - ./db/indexes.sql:/docker-entrypoint-initdb.d/04-indexes.sql
       - ./db/init_auth.sh:/docker-entrypoint-initdb.d/05-init_auth.sh
+
+  web:
+    build: .
+    container_name: academy_web_container
+    ports:
+      - "3000:3000"
+    environment:
+      HOSTNAME: "0.0.0.0" 
+      DATABASE_URL: "postgresql://app:${DB_APP_PASSWORD}@db:5432/academy_db"
+    depends_on:
+      - db
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next         
