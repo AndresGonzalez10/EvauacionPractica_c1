@@ -45,7 +45,6 @@ SELECT * FROM student_stats
 WHERE avg_grade < 7.0 OR attendance_rate < 0.8;
 
 -- 4. vw_attendance_by_group
-
 CREATE VIEW vw_attendance_by_group AS
 SELECT 
     g.id AS grupo_id,

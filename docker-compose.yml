@@ -16,4 +16,5 @@ services:
       - ./db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
       - ./db/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql
       - ./db/reports_vw.sql:/docker-entrypoint-initdb.d/03-reports.sql
-      - ./db/init_auth.sh:/docker-entrypoint-initdb.d/04-init_auth.sh
+      - ./db/indexes.sql:/docker-entrypoint-initdb.d/04-indexes.sql
+      - ./db/init_auth.sh:/docker-entrypoint-initdb.d/05-init_auth.sh
