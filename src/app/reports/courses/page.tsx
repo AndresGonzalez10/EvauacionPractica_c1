@@ -1,10 +1,9 @@
-import { query } from '@/lib/db';
+import { getCoursePerformanceReport, getDistinctTerms } from '@/lib/data';
 import { z } from 'zod';
 import Link from 'next/link';
 
-// 1. Esquema de validación (Filtro por Periodo)
 const filterSchema = z.object({
-  term: z.string().optional(), // Ej: "2024A"
+  term: z.string().optional(), 
   page: z.coerce.number().min(1).default(1),
 });
 
@@ -15,46 +14,11 @@ export default async function CoursePerformancePage({
 }) {
   const resolvedParams = await searchParams;
   const params = filterSchema.parse(resolvedParams);
-  
   const selectedTerm = params.term || '';
   const currentPage = params.page;
-  const itemsPerPage = 5;
-  const offset = (currentPage - 1) * itemsPerPage;
 
-  // 2. SQL Dinámico: Si hay periodo seleccionado, filtramos. Si no, mostramos todo.
-  let sql = `
-    SELECT * FROM vw_course_performance
-    WHERE 1=1
-  `;
-  const queryParams: (string | number)[] = [];
-
-  if (selectedTerm) {
-    sql += ` AND periodo = $1`;
-    queryParams.push(selectedTerm);
-  }
-
-  // Añadimos paginación al final
-  sql += ` ORDER BY promedio_general DESC LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}`;
-  queryParams.push(itemsPerPage, offset);
-
-  // 3. Ejecutar consultas
-  const result = await query(sql, queryParams);
-  const courses = result.rows;
-
-  // Consulta para contar total (para la paginación)
-  let countSql = `SELECT COUNT(*) as total FROM vw_course_performance WHERE 1=1`;
-  const countParams: string[] = [];
-  if (selectedTerm) {
-    countSql += ` AND periodo = $1`;
-    countParams.push(selectedTerm);
-  }
-  const countResult = await query(countSql, countParams);
-  const totalItems = Number(countResult.rows[0].total);
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
-
-  // Consulta extra para obtener los periodos disponibles (para el dropdown)
-  const termsResult = await query(`SELECT DISTINCT periodo FROM vw_course_performance ORDER BY periodo DESC`);
-  const availableTerms = termsResult.rows;
+  const { data: courses, totalPages } = await getCoursePerformanceReport(selectedTerm, currentPage);
+  const availableTerms = await getDistinctTerms('vw_course_performance');
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
@@ -68,7 +32,6 @@ export default async function CoursePerformancePage({
         </Link>
       </div>
 
-      {/* Filtro por Periodo */}
       <div className="mb-6 bg-white p-4 rounded shadow-sm flex gap-4 items-center">
         <span className="font-semibold text-gray-700">Filtrar por Periodo:</span>
         <div className="flex gap-2">
@@ -93,7 +56,6 @@ export default async function CoursePerformancePage({
         </div>
       </div>
 
-      {/* Tabla */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <table className="w-full text-left border-collapse">
           <thead className="bg-blue-50 border-b border-blue-100">
@@ -135,7 +97,6 @@ export default async function CoursePerformancePage({
         </table>
       </div>
 
-      {/* Paginación simple */}
       <div className="mt-6 flex justify-between items-center text-sm text-gray-500">
         <p>Página {currentPage} de {totalPages || 1}</p>
         <div className="flex gap-2">

@@ -1,4 +1,4 @@
-import { query } from '@/lib/db';
+import { getTeacherLoadReport, getDistinctTerms } from '@/lib/data';
 import { z } from 'zod';
 import Link from 'next/link';
 
@@ -14,45 +14,11 @@ export default async function TeacherLoadPage({
 }) {
   const resolvedParams = await searchParams;
   const params = filterSchema.parse(resolvedParams);
-  
   const selectedTerm = params.term || '';
   const currentPage = params.page;
-  const itemsPerPage = 5;
-  const offset = (currentPage - 1) * itemsPerPage;
 
-
-  let sql = `
-    SELECT * FROM vw_teacher_load
-    WHERE 1=1
-  `;
-  const queryParams: (string | number)[] = [];
-
-  if (selectedTerm) {
-    sql += ` AND periodo = $1`;
-    queryParams.push(selectedTerm);
-  }
-
-
-  sql += ` ORDER BY total_alumnos DESC LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}`;
-  queryParams.push(itemsPerPage, offset);
-
-
-  const result = await query(sql, queryParams);
-  const teachers = result.rows;
-
-  let countSql = `SELECT COUNT(*) as total FROM vw_teacher_load WHERE 1=1`;
-  const countParams: string[] = [];
-  if (selectedTerm) {
-    countSql += ` AND periodo = $1`;
-    countParams.push(selectedTerm);
-  }
-  const countResult = await query(countSql, countParams);
-  const totalItems = Number(countResult.rows[0].total);
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
-
-
-  const termsResult = await query(`SELECT DISTINCT periodo FROM vw_teacher_load ORDER BY periodo DESC`);
-  const availableTerms = termsResult.rows;
+  const { data: teachers, totalPages } = await getTeacherLoadReport(selectedTerm, currentPage);
+  const availableTerms = await getDistinctTerms('vw_teacher_load');
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">

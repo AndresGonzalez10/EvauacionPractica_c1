@@ -1,4 +1,4 @@
-import { query } from '@/lib/db';
+import { getStudentRanking, getDistinctPrograms } from '@/lib/data';
 import { z } from 'zod';
 import Link from 'next/link';
 
@@ -14,48 +14,18 @@ export default async function RankingPage({
 }) {
   const resolvedParams = await searchParams;
   const params = filterSchema.parse(resolvedParams);
-  
   const selectedProgram = params.program || '';
   const currentPage = params.page;
-  const itemsPerPage = 10; 
-  const offset = (currentPage - 1) * itemsPerPage;
 
-  let sql = `
-    SELECT * FROM vw_rank_students
-    WHERE 1=1
-  `;
-  const queryParams: (string | number)[] = [];
-
-  if (selectedProgram) {
-    sql += ` AND program = $1`;
-    queryParams.push(selectedProgram);
-  }
-
-  sql += ` ORDER BY ranking_posicion ASC LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}`;
-  queryParams.push(itemsPerPage, offset);
-
-  const result = await query(sql, queryParams);
-  const students = result.rows;
-
-  let countSql = `SELECT COUNT(*) as total FROM vw_rank_students WHERE 1=1`;
-  const countParams: string[] = [];
-  if (selectedProgram) {
-    countSql += ` AND program = $1`;
-    countParams.push(selectedProgram);
-  }
-  const countResult = await query(countSql, countParams);
-  const totalItems = Number(countResult.rows[0].total);
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
-
-  const programsResult = await query(`SELECT DISTINCT program FROM vw_rank_students ORDER BY program ASC`);
-  const availablePrograms = programsResult.rows;
+  const { data: students, totalPages } = await getStudentRanking(selectedProgram, currentPage);
+  const availablePrograms = await getDistinctPrograms();
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-yellow-700 flex items-center gap-2">
-            🏆 Ranking Estudiantil
+             🏆 Ranking Estudiantil
           </h1>
           <p className="text-gray-600">Mejores promedios por programa académico</p>
         </div>

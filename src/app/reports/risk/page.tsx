@@ -1,11 +1,10 @@
-import { query } from '@/lib/db';
+import { getStudentsAtRisk } from '@/lib/data';
 import { z } from 'zod';
 import Link from 'next/link';
 
-// 1. Definimos el esquema de validación para los filtros (Zod)
 const searchSchema = z.object({
-  q: z.string().optional(), // Término de búsqueda (query)
-  page: z.coerce.number().min(1).default(1), // Página actual (por defecto 1)
+  q: z.string().optional(), 
+  page: z.coerce.number().min(1).default(1),
 });
 
 export default async function RiskReportPage({
@@ -13,38 +12,15 @@ export default async function RiskReportPage({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  // 2. Validamos los parámetros de la URL con Zod
   const resolvedParams = await searchParams;
   const params = searchSchema.parse(resolvedParams);
   const searchTerm = params.q || '';
   const currentPage = params.page;
-  const itemsPerPage = 5; // Mostrar 5 alumnos por página
-  const offset = (currentPage - 1) * itemsPerPage;
 
-  // 3. Construimos la consulta SQL dinámica
-  // NOTA: Usamos ILIKE para búsqueda insensible a mayúsculas/minúsculas
-  const sql = `
-    SELECT * FROM vw_students_at_risk
-    WHERE nombre ILIKE $1 OR email ILIKE $1
-    ORDER BY avg_grade ASC  
-    LIMIT $2 OFFSET $3
-  `;
-
-  // 4. Ejecutamos la consulta (Server-side)
-  const result = await query(sql, [`%${searchTerm}%`, itemsPerPage, offset]);
-  const students = result.rows;
-
-  // Consulta extra para saber el total de páginas (para la paginación)
-  const countResult = await query(
-    `SELECT COUNT(*) as total FROM vw_students_at_risk WHERE nombre ILIKE $1 OR email ILIKE $1`,
-    [`%${searchTerm}%`]
-  );
-  const totalItems = Number(countResult.rows[0].total);
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const { data: students, totalPages } = await getStudentsAtRisk(searchTerm, currentPage);
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
-      {/* Encabezado y Botón de Volver */}
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-red-700">Alumnos en Riesgo</h1>
@@ -54,8 +30,6 @@ export default async function RiskReportPage({
           &larr; Volver al Dashboard
         </Link>
       </div>
-
-      {/* Barra de Búsqueda (Formulario GET) */}
       <form className="mb-6 flex gap-2">
         <input
           name="q"
@@ -72,8 +46,6 @@ export default async function RiskReportPage({
           </Link>
         )}
       </form>
-
-      {/* Tabla de Resultados */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <table className="w-full text-left border-collapse">
           <thead className="bg-gray-100 border-b border-gray-200">
@@ -101,7 +73,6 @@ export default async function RiskReportPage({
                     {Number(student.promedio_final).toFixed(1)}
                   </td>
                   <td className="p-4">
-                    {/* Barra de progreso visual */}
                     <div className="w-24 bg-gray-200 rounded-full h-2.5">
                       <div 
                         className={`h-2.5 rounded-full ${student.porcentaje_asistencia < 0.8 ? 'bg-red-500' : 'bg-yellow-500'}`} 
@@ -124,7 +95,6 @@ export default async function RiskReportPage({
         </table>
       </div>
 
-      {/* Controles de Paginación */}
       <div className="mt-6 flex justify-between items-center">
         <p className="text-sm text-gray-500">
           Página {currentPage} de {totalPages || 1}

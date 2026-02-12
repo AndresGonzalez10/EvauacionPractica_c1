@@ -1,4 +1,4 @@
-import { query } from '@/lib/db';
+import { getAttendanceReport, getDistinctTerms } from '@/lib/data';
 import { z } from 'zod';
 import Link from 'next/link';
 
@@ -14,45 +14,11 @@ export default async function AttendancePage({
 }) {
   const resolvedParams = await searchParams;
   const params = filterSchema.parse(resolvedParams);
-  
   const selectedTerm = params.term || '';
   const currentPage = params.page;
-  const itemsPerPage = 5;
-  const offset = (currentPage - 1) * itemsPerPage;
 
-
-  let sql = `
-    SELECT * FROM vw_attendance_by_group
-    WHERE 1=1
-  `;
-  const queryParams: (string | number)[] = [];
-
-  if (selectedTerm) {
-    sql += ` AND periodo = $1`;
-    queryParams.push(selectedTerm);
-  }
-
-
-  sql += ` ORDER BY asistencia_promedio ASC LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}`;
-  queryParams.push(itemsPerPage, offset);
-
-  const result = await query(sql, queryParams);
-  const groups = result.rows;
-
-
-  let countSql = `SELECT COUNT(*) as total FROM vw_attendance_by_group WHERE 1=1`;
-  const countParams: string[] = [];
-  if (selectedTerm) {
-    countSql += ` AND periodo = $1`;
-    countParams.push(selectedTerm);
-  }
-  const countResult = await query(countSql, countParams);
-  const totalItems = Number(countResult.rows[0].total);
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
-
-
-  const termsResult = await query(`SELECT DISTINCT periodo FROM vw_attendance_by_group ORDER BY periodo DESC`);
-  const availableTerms = termsResult.rows;
+  const { data: groups, totalPages } = await getAttendanceReport(selectedTerm, currentPage);
+  const availableTerms = await getDistinctTerms('vw_attendance_by_group');
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
@@ -65,7 +31,6 @@ export default async function AttendancePage({
           &larr; Volver
         </Link>
       </div>
-
 
       <div className="mb-6 bg-white p-4 rounded shadow-sm flex gap-4 items-center">
         <span className="font-semibold text-gray-700">Periodo:</span>
